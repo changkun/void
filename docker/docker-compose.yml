@@ -1,0 +1,26 @@
+# Copyright (c) 2021 Changkun Ou <hi@changkun.de>. All Rights Reserved.
+# Unauthorized using, copying, modifying and distributing, via any
+# medium is strictly prohibited.
+
+version: "3"
+services:
+  void:
+    container_name: void
+    restart: always
+    image: void:latest
+    environment:
+      VOID_PORT: :80
+      VOID_TG_BOTTOKEN: secret
+      VOID_TG_CHATID: secret
+      VOID_DB: /app/data/void.db
+      VOID_USER: changkun
+      VOID_PASS: changkun
+    volumes:
+      - ../data:/app/data
+    deploy:
+      replicas: 1
+    networks:
+      - traefik_proxy
+networks:
+  traefik_proxy:
+    external: true

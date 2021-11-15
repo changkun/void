@@ -1,0 +1,30 @@
+# github.com/allegro/bigcache/v3 v3.0.1
+## explicit; go 1.16
+github.com/allegro/bigcache/v3
+github.com/allegro/bigcache/v3/queue
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+# github.com/pkg/errors v0.8.1
+## explicit
+github.com/pkg/errors
+# go.etcd.io/bbolt v1.3.6
+## explicit; go 1.12
+go.etcd.io/bbolt
+# golang.design/x/tgstore v0.2.1
+## explicit; go 1.16
+golang.design/x/tgstore
+# golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
+## explicit; go 1.17
+golang.org/x/crypto/chacha20
+golang.org/x/crypto/chacha20poly1305
+golang.org/x/crypto/internal/poly1305
+golang.org/x/crypto/internal/subtle
+golang.org/x/crypto/poly1305
+# golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
+## explicit; go 1.17
+golang.org/x/sys/cpu
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+# gopkg.in/tucnak/telebot.v2 v2.4.1
+## explicit; go 1.13
+gopkg.in/tucnak/telebot.v2

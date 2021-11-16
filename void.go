@@ -28,7 +28,7 @@ func main() {
 	log.SetFlags(0)
 
 	flag.CommandLine.Usage = func() {
-		fmt.Fprintf(os.Stderr, `void is a zero storage cost file sharing system.
+		fmt.Fprintf(os.Stderr, `void is a zero storage cost file system.
 Open sourced at https://changkun.de/s/void.
 
 Command line usage:

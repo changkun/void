@@ -1,6 +1,6 @@
 # void
 
-void is a zero storage cost large file sharing system.
+void is a zero storage cost file system.
 
 ## License
 

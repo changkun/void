@@ -428,7 +428,7 @@ var voidTmpl = template.Must(template.New("files").Parse(`<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>changkun.de's void file sharing system</title>
+<title>changkun.de's void file system</title>
 <style>
 html, body {
 	font-family: sans-serif, monospace;
@@ -472,8 +472,8 @@ footer {
 </style>
 </head>
 <body>
-<h1>The Void File Sharing System</h1>
-<p>void is a zero storage cost file sharing system.</p>
+<h1>The Void File System</h1>
+<p>void is a zero storage cost file system.</p>
 
 <table class="table">
 <tr><th>ID</th><th>File Name</th><th>File Size</th></tr>

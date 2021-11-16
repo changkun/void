@@ -11,9 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -39,7 +37,8 @@ func Upload(fpath string) (r *void.Response, err error) {
 		log.Fatal("missing VOID_USER and VOID_PASS")
 	}
 
-	_, err = os.Stat(fpath)
+	var fi os.FileInfo
+	fi, err = os.Stat(fpath)
 	if err != nil {
 		return
 	}
@@ -51,30 +50,20 @@ func Upload(fpath string) (r *void.Response, err error) {
 	}
 	defer f.Close()
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	var part io.Writer
-	part, err = writer.CreateFormFile("file", filepath.Base(fpath))
+	m := &void.Metadata{FileSize: fi.Size()}
+	_, m.FileName = filepath.Split(fpath)
+	var b []byte
+	b, err = json.Marshal(m)
 	if err != nil {
-		writer.Close()
 		return
 	}
-
-	_, err = io.Copy(part, f)
-	if err != nil {
-		writer.Close()
-		return
-	}
-	writer.Close()
 
 	var req *http.Request
-	req, err = http.NewRequest(http.MethodPost, Endpoint, body)
+	req, err = http.NewRequest(http.MethodPut, Endpoint, bytes.NewReader(b))
 	if err != nil {
 		return
 	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.SetBasicAuth(u, p)
+	req.SetBasicAuth(void.Conf.Auth.Username, void.Conf.Auth.Password)
 
 	var resp *http.Response
 	resp, err = http.DefaultClient.Do(req)
@@ -82,22 +71,56 @@ func Upload(fpath string) (r *void.Response, err error) {
 		return
 	}
 	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
+	b, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	meta := &void.Metadata{}
+	err = json.Unmarshal(b, meta)
 	if err != nil {
 		return
 	}
 
-	r = &void.Response{}
-	err = json.Unmarshal(data, r)
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return r, nil
-	default:
-		err = errors.New(r.Message)
-		return nil, fmt.Errorf("failed with status code %d: %w", resp.StatusCode, err)
+	// Now we have the server allocated metadata, let's upload the file.
+	store := tgstore.New()
+	store.BotToken = void.Conf.BotToken
+	store.ChatID = void.Conf.ChatID
+	meta.UploadId, err = store.Upload(context.Background(), meta.Key, f)
+	if err != nil {
+		err = fmt.Errorf("upload failed with error: %w", err)
+		return
 	}
+
+	// Now we have the upload id, let's tell the server again but with
+	// the upload id.
+	b, err = json.Marshal(meta)
+	if err != nil {
+		return
+	}
+
+	req, err = http.NewRequest(http.MethodPut, Endpoint, bytes.NewReader(b))
+	if err != nil {
+		return
+	}
+	req.SetBasicAuth(void.Conf.Auth.Username, void.Conf.Auth.Password)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	b, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		rr := &void.Response{}
+		_ = json.Unmarshal(b, rr)
+		err = errors.New(rr.Message)
+		return
+	}
+
+	return &void.Response{Id: meta.Id}, nil
 }
 
 const overwrite = "\r\033[1A\033[0K"

@@ -23,6 +23,10 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("cannot create bucket: %s", err)
 		}
+		_, err = tx.CreateBucket([]byte("temps"))
+		if err != nil {
+			return fmt.Errorf("cannot create bucket: %s", err)
+		}
 		return nil
 	})
 }

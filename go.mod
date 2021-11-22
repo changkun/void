@@ -3,7 +3,7 @@ module changkun.de/x/void
 go 1.18
 
 require (
-	changkun.de/x/login v0.0.0-20211122114134-969224b974a5
+	changkun.de/x/login v0.0.0-20211122130521-1ad63a31a4e7
 	go.etcd.io/bbolt v1.3.6
 	golang.design/x/tgstore v0.2.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa

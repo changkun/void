@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -24,7 +26,7 @@ var (
 )
 
 // Verify checks if the given login token is valid or not.
-func Verify(token string) error {
+func Verify(token string) (string, error) {
 	b, _ := json.Marshal(struct {
 		Token string `json:"token"`
 	}{
@@ -34,35 +36,52 @@ func Verify(token string) error {
 
 	resp, err := http.DefaultClient.Post(VerifyEndpoint, "application/json", br)
 	if err != nil {
-		return ErrBadRequest
+		return "", ErrBadRequest
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return ErrUnauthorized
+		return "", ErrUnauthorized
 	}
 
-	return nil
+	b, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return "", ErrBadRequest
+	}
+
+	x := &struct {
+		User string `json:"username"`
+	}{}
+	err = json.Unmarshal(b, x)
+	if err != nil {
+		return "", ErrBadRequest
+	}
+
+	return x.User, nil
 }
 
 // Handle handles authentication by checking either query parameters
 // regarding token or cookie auth.
-func HandleAuth(w http.ResponseWriter, r *http.Request) error {
+func HandleAuth(w http.ResponseWriter, r *http.Request) (string, error) {
 	// 1st try: query parameter.
 	token := r.URL.Query().Get("token")
 	if token == "" {
 		// 2nd try: cookie.
 		c, err := r.Cookie("auth")
 		if err != nil {
-			return err
+			return "", err
 		}
 		if c.Value == "" {
-			return ErrUnauthorized
+			return "", ErrUnauthorized
 		}
 
 		token = c.Value
 	}
 
-	return Verify(token)
+	u, err := Verify(token)
+	if err == nil {
+		w.Header().Set("Set-Cookie", fmt.Sprintf("auth=%s; Max-Age=%d", token, 60*60*24*60)) // 3 months
+	}
+	return u, err
 }
 
 // RequestToken requests the login endpoint and returns the token for login.

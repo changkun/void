@@ -1,5 +1,7 @@
 changkun.de/x/login v0.0.0-20211122114134-969224b974a5 h1:3h4RF2vyQU89PTxo+xzjoeKf+hMeO89GnSH40UZOUKs=
 changkun.de/x/login v0.0.0-20211122114134-969224b974a5/go.mod h1:sxQtRW27EJgQr9R/SFKtyLppBbEOS8Fk0MXA1ptakEw=
+changkun.de/x/login v0.0.0-20211122130521-1ad63a31a4e7 h1:nzxKIYUZF08AgXPqZMqGTnpZIWYaIkvk2F6nnxVQ4VA=
+changkun.de/x/login v0.0.0-20211122130521-1ad63a31a4e7/go.mod h1:sxQtRW27EJgQr9R/SFKtyLppBbEOS8Fk0MXA1ptakEw=
 github.com/allegro/bigcache/v2 v2.2.5/go.mod h1:FppZsIO+IZk7gCuj5FiIDHGygD9xvWQcqg1uIPMb6tY=
 github.com/allegro/bigcache/v3 v3.0.0/go.mod h1:t5TAJn1B9qvf/VlJrSM1r6NlFAYoFDubYUsCuIO9nUQ=
 github.com/allegro/bigcache/v3 v3.0.1 h1:Q4Xl3chywXuJNOw7NV+MeySd3zGQDj4KCpkCg0te8mc=

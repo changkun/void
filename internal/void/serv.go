@@ -177,7 +177,7 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) (err error
 }
 
 func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
-	err = login.HandleAuth(w, r)
+	_, err = login.HandleAuth(w, r)
 	if err != nil {
 		return
 	}
@@ -270,7 +270,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 
 	// Data mode: return upload id and key.
 	if r.URL.Query().Get("mode") == "data" {
-		err = login.HandleAuth(w, r)
+		_, err = login.HandleAuth(w, r)
 		if err != nil {
 			return
 		}
@@ -302,7 +302,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 func (s *Server) handleList(w http.ResponseWriter, r *http.Request) (err error) {
 	raw := false
 	if r.URL.Query().Get("mode") == "data" {
-		err = login.HandleAuth(w, r)
+		_, err = login.HandleAuth(w, r)
 		if err != nil {
 			return
 		}
@@ -343,7 +343,7 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) (err error) 
 }
 
 func (s *Server) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
-	err = login.HandleAuth(w, r)
+	_, err = login.HandleAuth(w, r)
 	if err != nil {
 		return
 	}

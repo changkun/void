@@ -57,7 +57,6 @@ func (m *Metadata) String() string {
 type Server struct {
 	store *tgstore.TGStore
 	db    *bbolt.DB
-	auth  *login.AuthHandler
 }
 
 func NewServer() *Server {
@@ -69,9 +68,6 @@ func NewServer() *Server {
 	s := &Server{
 		store: tgstore.New(),
 		db:    db,
-		auth: login.NewAuthHandler(func(w http.ResponseWriter, r *http.Request) (string, string) {
-			return Conf.Auth.Username, Conf.Auth.Password
-		}),
 	}
 	s.store.BotToken = Conf.BotToken
 	s.store.ChatID = Conf.ChatID
@@ -181,7 +177,7 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) (err error
 }
 
 func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
-	err = s.auth.Handle(w, r)
+	err = login.HandleAuth(w, r)
 	if err != nil {
 		return
 	}
@@ -274,7 +270,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 
 	// Data mode: return upload id and key.
 	if r.URL.Query().Get("mode") == "data" {
-		err = s.auth.Handle(w, r)
+		err = login.HandleAuth(w, r)
 		if err != nil {
 			return
 		}
@@ -306,7 +302,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 func (s *Server) handleList(w http.ResponseWriter, r *http.Request) (err error) {
 	raw := false
 	if r.URL.Query().Get("mode") == "data" {
-		err = s.auth.Handle(w, r)
+		err = login.HandleAuth(w, r)
 		if err != nil {
 			return
 		}
@@ -347,7 +343,7 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) (err error) 
 }
 
 func (s *Server) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
-	err = s.auth.Handle(w, r)
+	err = login.HandleAuth(w, r)
 	if err != nil {
 		return
 	}

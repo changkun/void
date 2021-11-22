@@ -1,4 +1,4 @@
-# changkun.de/x/login v0.0.0-20211121164351-0a1c40ec72da
+# changkun.de/x/login v0.0.0-20211122114134-969224b974a5
 ## explicit; go 1.18
 changkun.de/x/login
 # github.com/allegro/bigcache/v3 v3.0.1

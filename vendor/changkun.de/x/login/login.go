@@ -44,34 +44,29 @@ func Verify(token string) error {
 	return nil
 }
 
-// AuthHandler offers the common abstraction for login with credentials.
-type AuthHandler struct {
-	creds func(w http.ResponseWriter, r *http.Request) (string, string)
-}
-
-// NewAuthHandler creates a new authentication handler.
-func NewAuthHandler(creds func(w http.ResponseWriter, r *http.Request) (string, string)) *AuthHandler {
-	return &AuthHandler{creds}
-}
-
-// Handle handles the login authentication requests and returns an error if failed.
-func (ah *AuthHandler) Handle(w http.ResponseWriter, r *http.Request) error {
+// Handle handles authentication by checking either query parameters
+// regarding token or cookie auth.
+func HandleAuth(w http.ResponseWriter, r *http.Request) error {
 	// 1st try: query parameter.
 	token := r.URL.Query().Get("token")
-	if token != "" {
-		err := Verify(token)
-		if errors.Is(err, ErrUnauthorized) {
-			return err
-		}
-
+	if token == "" {
 		// 2nd try: cookie.
 		c, err := r.Cookie("auth")
-		if err == nil {
-			return Verify(c.Value)
+		if err != nil {
+			return err
 		}
+		if c.Value == "" {
+			return ErrUnauthorized
+		}
+
+		token = c.Value
 	}
 
-	user, pass := ah.creds(w, r)
+	return Verify(token)
+}
+
+// RequestToken requests the login endpoint and returns the token for login.
+func RequestToken(user, pass string) (string, error) {
 	b, _ := json.Marshal(struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -80,13 +75,13 @@ func (ah *AuthHandler) Handle(w http.ResponseWriter, r *http.Request) error {
 
 	resp, err := http.DefaultClient.Post(AuthEndpoint, "application/json", br)
 	if err != nil {
-		return ErrBadRequest
+		return "", ErrBadRequest
 	}
 	defer resp.Body.Close()
 
 	cookies := resp.Cookies()
 	if resp.StatusCode != http.StatusOK || len(cookies) == 0 {
-		return ErrUnauthorized
+		return "", ErrUnauthorized
 	}
-	return Verify(cookies[0].Value)
+	return cookies[0].Value, nil
 }

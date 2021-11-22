@@ -13,8 +13,7 @@ services:
       VOID_TG_BOTTOKEN: secret
       VOID_TG_CHATID: secret
       VOID_DB: /app/data/void.db
-      VOID_USER: changkun
-      VOID_PASS: changkun
+      VOID_LOGIN: https://login.changkun.de
     volumes:
       - ../data:/app/data
     deploy:

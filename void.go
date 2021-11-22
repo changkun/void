@@ -48,6 +48,8 @@ $ void serv
 		return
 	}
 
+	void.LoadConf()
+
 	switch args[0] {
 	case "up", "upload":
 		for _, path := range args[1:] {

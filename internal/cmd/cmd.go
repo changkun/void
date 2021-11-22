@@ -17,10 +17,20 @@ import (
 	"os"
 	"path/filepath"
 
-	"changkun.de/x/login"
 	"changkun.de/x/void/internal/void"
 	"golang.design/x/tgstore"
 )
+
+func appendQueryToken(addr, token string) string {
+	ur, err := url.Parse(addr)
+	if err != nil {
+		return ""
+	}
+	q := ur.Query()
+	q.Set("token", token)
+	ur.RawQuery = q.Encode()
+	return ur.String()
+}
 
 // Upload uploads the given file to the void server and returns
 // the corresponding file ID for future downloads.
@@ -33,11 +43,6 @@ func Upload(fpath string) (r *void.Response, err error) {
 		err = fmt.Errorf("upload error: %w", err)
 		log.Println(err)
 	}()
-
-	u, p := os.Getenv("VOID_USER"), os.Getenv("VOID_PASS")
-	if u == "" || p == "" {
-		log.Fatal("missing VOID_USER and VOID_PASS")
-	}
 
 	var fi os.FileInfo
 	fi, err = os.Stat(fpath)
@@ -60,13 +65,8 @@ func Upload(fpath string) (r *void.Response, err error) {
 		return
 	}
 
-	token, err := login.RequestToken(void.Conf.Auth.Username, void.Conf.Auth.Password)
-	if err != nil {
-		return
-	}
-
 	var req *http.Request
-	req, err = http.NewRequest(http.MethodPut, appendQueryToken(Endpoint, token), bytes.NewReader(b))
+	req, err = http.NewRequest(http.MethodPut, appendQueryToken(Endpoint, void.Conf.Auth), bytes.NewReader(b))
 	if err != nil {
 		return
 	}
@@ -104,11 +104,7 @@ func Upload(fpath string) (r *void.Response, err error) {
 		return
 	}
 
-	token, err = login.RequestToken(void.Conf.Auth.Username, void.Conf.Auth.Password)
-	if err != nil {
-		return
-	}
-	req, err = http.NewRequest(http.MethodPut, appendQueryToken(Endpoint, token), bytes.NewReader(b))
+	req, err = http.NewRequest(http.MethodPut, appendQueryToken(Endpoint, void.Conf.Auth), bytes.NewReader(b))
 	if err != nil {
 		return
 	}
@@ -146,13 +142,8 @@ func Download(id string) (err error) {
 		err = fmt.Errorf("download error: %w", err)
 	}()
 
-	token, err := login.RequestToken(void.Conf.Auth.Username, void.Conf.Auth.Password)
-	if err != nil {
-		return
-	}
-
 	var req *http.Request
-	req, err = http.NewRequest(http.MethodGet, appendQueryToken(Endpoint+"?mode=data&id="+id, token), nil)
+	req, err = http.NewRequest(http.MethodGet, appendQueryToken(Endpoint+"?mode=data&id="+id, void.Conf.Auth), nil)
 	if err != nil {
 		return
 	}
@@ -237,7 +228,7 @@ func Delete(id string) (err error) {
 	}()
 
 	var req *http.Request
-	req, err = http.NewRequest(http.MethodDelete, Endpoint+"?id="+id, nil)
+	req, err = http.NewRequest(http.MethodDelete, appendQueryToken(Endpoint+"?id="+id, void.Conf.Auth), nil)
 	if err != nil {
 		return
 	}
@@ -267,13 +258,9 @@ func List() (files []*void.Metadata, err error) {
 
 		err = fmt.Errorf("list error: %w", err)
 	}()
-	token, err := login.RequestToken(void.Conf.Auth.Username, void.Conf.Auth.Password)
-	if err != nil {
-		return
-	}
 
 	var req *http.Request
-	req, err = http.NewRequest(http.MethodGet, appendQueryToken(Endpoint+"?mode=data", token), nil)
+	req, err = http.NewRequest(http.MethodGet, appendQueryToken(Endpoint+"?mode=data", void.Conf.Auth), nil)
 	if err != nil {
 		return
 	}
@@ -300,15 +287,4 @@ func List() (files []*void.Metadata, err error) {
 		err = fmt.Errorf("failed with status: %v", resp.StatusCode)
 		return
 	}
-}
-
-func appendQueryToken(addr, token string) string {
-	ur, err := url.Parse(addr)
-	if err != nil {
-		return ""
-	}
-	q := ur.Query()
-	q.Set("token", token)
-	ur.RawQuery = q.Encode()
-	return ur.String()
 }

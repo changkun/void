@@ -16,6 +16,7 @@ import (
 	"mime/multipart"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
@@ -126,6 +127,16 @@ func (s *Server) Run() {
 			log.Println(err)
 		}()
 
+		_, err = login.HandleAuth(w, r)
+		if err != nil {
+			uu, _ := url.Parse(Conf.SSO)
+			q := uu.Query()
+			q.Set("redirect", "https://"+r.Host+r.URL.String())
+			uu.RawQuery = q.Encode()
+			http.Redirect(w, r, uu.String(), http.StatusFound)
+			return
+		}
+
 		switch r.Method {
 		case http.MethodDelete:
 			err = s.handleDelete(w, r)
@@ -177,11 +188,6 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) (err error
 }
 
 func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
-	_, err = login.HandleAuth(w, r)
-	if err != nil {
-		return
-	}
-
 	var b []byte
 	b, err = io.ReadAll(r.Body)
 	if err != nil {
@@ -270,11 +276,6 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 
 	// Data mode: return upload id and key.
 	if r.URL.Query().Get("mode") == "data" {
-		_, err = login.HandleAuth(w, r)
-		if err != nil {
-			return
-		}
-
 		b, _ := json.Marshal(meta)
 		w.Header().Set("Content-Type", "application/json")
 		_, err = w.Write(b)
@@ -302,10 +303,6 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 func (s *Server) handleList(w http.ResponseWriter, r *http.Request) (err error) {
 	raw := false
 	if r.URL.Query().Get("mode") == "data" {
-		_, err = login.HandleAuth(w, r)
-		if err != nil {
-			return
-		}
 		raw = true
 	}
 
@@ -343,11 +340,6 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) (err error) 
 }
 
 func (s *Server) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
-	_, err = login.HandleAuth(w, r)
-	if err != nil {
-		return
-	}
-
 	var f multipart.File
 	var h *multipart.FileHeader
 
